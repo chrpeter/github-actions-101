@@ -3,12 +3,17 @@ name: "Hello .NET"
 on:
   workflow_dispatch:
 
+env:
+  TEST_PATH: Notes.Api.Test/Notes.Api.Test.csproj
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/upload-artifact@v2 # upload test results
+      - uses: dorny/test-reporter@v1
 
       - name: "Setup .NET Core SDK"
         uses: actions/setup-dotnet@v2
@@ -24,5 +29,20 @@ jobs:
       - name: "Build"
         run: dotnet build --no-restore --configuration Release Notes.Api.Test/Notes.Api.Test.csproj
 
-      - name: "Test"
-        run: dotnet test --no-build --configuration Release Notes.Api.Test/Notes.Api.Test.csproj
+      - run: dotnet test \
+          --no-build \
+          --configuration Release \
+          --verbosity normal \
+          --logger trx \
+          Notes.Api.Test/Notes.Api.Test.csproj
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          name: test-results
+          path: dorny.trx
+
+      - run: dotnet test --no-build --configuration Release Notes.Api.Test/Notes.Api.Test.csproj
+        with:
+          artifact: test-results # artifact name
+          name: TRX Tests # Name of the check run which will be created
+          path: "*.trx" # Path to test results (inside artifact .zip)
+          reporter: dotnet-trx
