@@ -12,7 +12,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
       - name: "Setup .NET Core SDK"
         uses: actions/setup-dotnet@v2
         with:
@@ -33,14 +32,14 @@ jobs:
           --verbosity normal \
           --logger trx \
           Notes.Api.Test/Notes.Api.Test.csproj
-      - uses: actions/upload-artifact@v2 # upload test results
+        uses: actions/upload-artifact@v2 # upload test results
         if: success() || failure() # run this step even if previous step failed
         with:
           name: test-results
           path: dorny.trx
 
       - run: dotnet test --no-build --configuration Release Notes.Api.Test/Notes.Api.Test.csproj
-      - uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v1
         with:
           artifact: test-results # artifact name
           name: TRX Tests # Name of the check run which will be created
